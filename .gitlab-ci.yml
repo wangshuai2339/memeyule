@@ -1,0 +1,47 @@
+stages:
+  - deploy
+
+cache:
+  key: 'testing.memeyule.com'
+  paths:
+    - node_modules/
+
+deploy:staging:
+  stage: deploy
+  script:
+    - echo $CI_PROJECT_DIR
+    - nvm use 12.18.0;
+    - yarn install;
+    - yarn build:staging;
+    - rsync -azp --delete --exclude={'.git*'} ./dist/. webserver@192.168.31.249:/data/website/testing.memeyule.com/
+  only:
+    - develop
+  tags:
+    - shell
+
+deploy:grey:
+  stage: deploy
+  script:
+    - echo $CI_PROJECT_DIR
+    - nvm use 12.18.0;
+    - yarn install;
+    - yarn build:grey;
+    - rsync -azp --delete --exclude={'.git*'} ./dist/. webserver@192.168.1.170:/data/website/testing.memeyule.com/
+  only:
+    - grey
+  tags:
+    - shell
+
+deploy:production:
+  stage: deploy
+  script:
+    - echo $CI_PROJECT_DIR
+    - nvm use 12.18.0;
+    - yarn install;
+    - yarn build:prod;
+    - rsync -azp --delete -e 'ssh -p 4811' --exclude={'.git*'} ./dist/. webserver@192.168.1.39:/data/website/testing.memeyule.com/
+    - rsync -azp --delete -e 'ssh -p 4811' --exclude={'.git*'} ./dist/. webserver@192.168.1.40:/data/website/testing.memeyule.com/
+  only:
+    - tags
+  tags:
+    - shell
